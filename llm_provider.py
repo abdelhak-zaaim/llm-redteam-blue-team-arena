@@ -1,8 +1,14 @@
 """
 LLM Provider adapter template.
 Provides a common interface for different LLM providers.
+
+For API keys, it's recommended to use environment variables:
+- Set OPENAI_API_KEY for OpenAI
+- Set ANTHROPIC_API_KEY for Anthropic
+- Or load from .env file (see .env.example)
 """
 
+import os
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -21,8 +27,11 @@ class OpenAIProvider(LLMProvider):
     OpenAI API provider template.
     
     Example usage:
+        import os
+        # Load API key from environment
+        api_key = os.getenv('OPENAI_API_KEY')
         provider = OpenAIProvider(
-            api_key="your-api-key",
+            api_key=api_key,
             model="gpt-3.5-turbo",
             system_prompt="You are a helpful assistant."
         )
@@ -61,8 +70,11 @@ class AnthropicProvider(LLMProvider):
     Anthropic (Claude) API provider template.
     
     Example usage:
+        import os
+        # Load API key from environment
+        api_key = os.getenv('ANTHROPIC_API_KEY')
         provider = AnthropicProvider(
-            api_key="your-api-key",
+            api_key=api_key,
             model="claude-3-sonnet-20240229",
             system_prompt="You are a helpful assistant."
         )
@@ -114,7 +126,10 @@ def get_provider(provider_type: str, system_prompt: str, api_key: Optional[str] 
     Args:
         provider_type: One of 'mock', 'openai', 'anthropic'
         system_prompt: The system prompt to use
-        api_key: API key for real providers (not needed for mock)
+        api_key: API key for real providers (not needed for mock).
+                 If not provided, will attempt to load from environment:
+                 - OPENAI_API_KEY for OpenAI
+                 - ANTHROPIC_API_KEY for Anthropic
         model: Model name (optional, uses defaults if not provided)
     
     Returns:
@@ -124,11 +139,15 @@ def get_provider(provider_type: str, system_prompt: str, api_key: Optional[str] 
         return MockLLMProvider(system_prompt)
     elif provider_type == "openai":
         if not api_key:
-            raise ValueError("API key required for OpenAI provider")
+            api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("API key required for OpenAI provider. Set OPENAI_API_KEY environment variable or pass api_key parameter.")
         return OpenAIProvider(api_key, model or "gpt-3.5-turbo", system_prompt)
     elif provider_type == "anthropic":
         if not api_key:
-            raise ValueError("API key required for Anthropic provider")
+            api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            raise ValueError("API key required for Anthropic provider. Set ANTHROPIC_API_KEY environment variable or pass api_key parameter.")
         return AnthropicProvider(api_key, model or "claude-3-sonnet-20240229", system_prompt)
     else:
         raise ValueError(f"Unknown provider type: {provider_type}")

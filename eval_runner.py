@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple
 import re
 
 from llm_provider import get_provider
+from env_utils import load_system_prompt_with_env
 
 
 def load_test_cases(filepath: str) -> List[Dict]:
@@ -23,9 +24,8 @@ def load_test_cases(filepath: str) -> List[Dict]:
 
 
 def load_system_prompt(filepath: str) -> str:
-    """Load system prompt from file."""
-    with open(filepath, 'r') as f:
-        return f.read()
+    """Load system prompt from file with environment variable injection."""
+    return load_system_prompt_with_env(filepath)
 
 
 def check_response(response: str, expected_behavior: str, test_case: Dict) -> Tuple[str, str]:

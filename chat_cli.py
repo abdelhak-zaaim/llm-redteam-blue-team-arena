@@ -8,16 +8,16 @@ import os
 from datetime import datetime
 
 from llm_provider import get_provider
+from env_utils import load_system_prompt_with_env
 
 
 def load_system_prompt(prompt_type: str) -> str:
-    """Load system prompt from file."""
+    """Load system prompt from file with environment variable injection."""
     prompt_file = f"prompts/{prompt_type}.txt"
     if not os.path.exists(prompt_file):
         raise FileNotFoundError(f"System prompt file not found: {prompt_file}")
     
-    with open(prompt_file, 'r') as f:
-        return f.read()
+    return load_system_prompt_with_env(prompt_file)
 
 
 def save_chat_log(messages: list, output_dir: str, prompt_type: str):

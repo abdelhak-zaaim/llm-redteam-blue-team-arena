@@ -17,3 +17,4 @@ env/
 .coverage
 *.log
 .DS_Store
+.env
