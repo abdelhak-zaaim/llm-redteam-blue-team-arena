@@ -31,7 +31,14 @@ def load_env_file(env_file: str = ".env") -> Dict[str, str]:
             # Parse key=value pairs
             if '=' in line:
                 key, value = line.split('=', 1)
-                env_vars[key.strip()] = value.strip()
+                key = key.strip()
+                value = value.strip()
+                
+                # Strip quotes from value if present
+                if value and value[0] in ('"', "'") and value[-1] == value[0]:
+                    value = value[1:-1]
+                
+                env_vars[key] = value
     
     return env_vars
 
@@ -42,6 +49,10 @@ def get_secret_key() -> str:
     
     Returns:
         The SECRET_KEY value
+    
+    Note:
+        Falls back to a default value for demo/testing purposes.
+        In production, consider requiring the environment variable to be set.
     """
     # First check environment variables
     secret_key = os.getenv('SECRET_KEY')
@@ -51,7 +62,8 @@ def get_secret_key() -> str:
         env_vars = load_env_file()
         secret_key = env_vars.get('SECRET_KEY')
     
-    # If still not found, use default for testing
+    # Fallback to default for testing/demo purposes
+    # This allows the MockLLM to work out of the box
     if not secret_key:
         secret_key = 'sk_prod_12345_confidential_do_not_share'
     
@@ -67,6 +79,10 @@ def load_system_prompt_with_env(filepath: str) -> str:
     
     Returns:
         System prompt with environment variables injected
+    
+    Note:
+        Only replaces {SECRET_KEY} placeholder for safety.
+        Other curly braces in the template are preserved.
     """
     with open(filepath, 'r') as f:
         prompt_template = f.read()
@@ -74,7 +90,8 @@ def load_system_prompt_with_env(filepath: str) -> str:
     # Get environment variables
     secret_key = get_secret_key()
     
-    # Inject variables into the prompt
-    prompt = prompt_template.format(SECRET_KEY=secret_key)
+    # Safely replace only the SECRET_KEY placeholder
+    # This avoids issues with other curly braces in the template
+    prompt = prompt_template.replace('{SECRET_KEY}', secret_key)
     
     return prompt
